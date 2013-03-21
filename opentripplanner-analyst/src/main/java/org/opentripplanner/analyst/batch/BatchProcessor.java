@@ -87,7 +87,7 @@ public class BatchProcessor {
     //JB
     private static int totalLoop = 25;
     private static int count = 0;    
-    private static final boolean AMENITY_RUN = true;
+    private static final boolean AMENITY_RUN = false;
     private static String selectedTransportMode;
     //private static String[] transportModes = {"CAR","TRANSIT","WALK","BICYCLE"};
     //bicycle not working at the moment. And Transit cannot work without walking - must walk to bus stops etc.
@@ -157,14 +157,18 @@ public class BatchProcessor {
             while(count < totalLoop)//jb
             {
             
-                if(count ==0)
+                //UNCOMMMENT OUT AGAIN
+               /* if(count ==0)
                 {
                     
                         ExternalInvoke.setUpConnection();
                 }
                 
                 
-                selectedTransportMode = ExternalInvoke.awaitRequest();
+                selectedTransportMode = ExternalInvoke.awaitRequest();*/
+
+                //comment this out when finished
+                selectedTransportMode = "WALK,TRANSIT";
                 
                 long requestLoopStartTime = System.nanoTime();
                 
@@ -182,7 +186,7 @@ public class BatchProcessor {
             	System.out.println("-------------------------------------------------------------------------------------------");
             	//System.out.println("done stuff");
             	
-            	ExternalInvoke.finishNotify();
+            	//ExternalInvoke.finishNotify();
             	
             	System.out.println("count: " + count);
             	count ++;
