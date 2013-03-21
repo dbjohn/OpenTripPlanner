@@ -14,6 +14,7 @@
 package org.opentripplanner.analyst.batch;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.TimeZone;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -28,8 +29,8 @@ import lombok.Setter;
 import org.opentripplanner.analyst.batch.aggregator.Aggregator;
 import org.opentripplanner.analyst.core.Sample;
 import org.opentripplanner.analyst.request.SampleFactory;
-import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.routing.core.RoutingRequest;
+import org.opentripplanner.routing.core.TraverseModeSet;
 import org.opentripplanner.routing.error.VertexNotFoundException;
 import org.opentripplanner.routing.services.GraphService;
 import org.opentripplanner.routing.services.SPTService;
@@ -82,13 +83,35 @@ public class BatchProcessor {
     private long lastCheckpointTime = 0;
     private ResultSet aggregateResultSet = null;
     
+    //JB
+    private static int totalLoop = 25;
+    private static int count = 0;    
+    private static final boolean AMENITY_RUN = true;
+    private static String selectedTransportMode;
+    //private static String[] transportModes = {"CAR","TRANSIT","WALK","BICYCLE"};
+    //bicycle not working at the moment. And Transit cannot work without walking - must walk to bus stops etc.
+    private static String[] transportModes = {"CAR","TRANSIT,WALK","WALK"};
+    //private static String[] transportModes = {"BICYCLE,WALK"};
+    /*private static String[] transportModes = {"TRANSIT"};*/
+    /*private static String[] transportModes = {"TRANSIT,WALK"};*/
+    /*private static String[] transportModes = {"BICYCLE"};*/
+    
+    
+    //jb//
+    
     /** Cut off the search instead of building a full path tree. Can greatly improve run times. */
     public void setSearchCutoffMinutes(int minutes) {
         this.searchCutoffSeconds = minutes * 60;
     }
     
     public static void main(String[] args) throws IOException {
-        org.springframework.core.io.Resource appContextResource;
+            	
+    	//JB add to assess performance of program.
+    	//check time
+    	long startTime = System.nanoTime();
+    	//
+    	
+    	org.springframework.core.io.Resource appContextResource;
         if( args.length == 0) {
             LOG.warn("no configuration XML file specified; using example on classpath");
             appContextResource = new ClassPathResource(EXAMPLE_CONTEXT);
@@ -99,19 +122,100 @@ public class BatchProcessor {
         GenericApplicationContext ctx = new GenericApplicationContext();
         XmlBeanDefinitionReader xmlReader = new XmlBeanDefinitionReader(ctx);
         xmlReader.loadBeanDefinitions(appContextResource);
+        //jb
+        long refreshStartTime = System.nanoTime();
+    
         ctx.refresh();
+        //jb
+        calcProgramTime(refreshStartTime,"context refresh");       
+       
         ctx.registerShutdownHook();
         BatchProcessor processor = ctx.getBean(BatchProcessor.class);
-        if (processor == null)
-            LOG.error("No BatchProcessor bean was defined.");
-        else
-            processor.run();
+
+        //Use this for calculating amenity times
+        ///////////////////////////////////////////////
+        
+        if(AMENITY_RUN){
+                            
+            for(String mode: transportModes){
+                
+                System.out.println(mode);
+                selectedTransportMode = mode;
+            
+                if (processor == null)
+                {
+                    LOG.error("No BatchProcessor bean was defined.");
+                }
+                else{               
+                    processor.run();            
+                }
+                count ++;
+            }
+        }              
+        else { //Use this for calculating the commute time
+            while(count < totalLoop)//jb
+            {
+            
+                if(count ==0)
+                {
+                    
+                        ExternalInvoke.setUpConnection();
+                }
+                
+                
+                selectedTransportMode = ExternalInvoke.awaitRequest();
+                
+                long requestLoopStartTime = System.nanoTime();
+                
+            	if (processor == null)
+            	{
+    	            LOG.error("No BatchProcessor bean was defined.");
+            	}
+    	        else{	            
+    	            processor.run();	        
+    	           }
+                            
+    	        //jb
+            	calcProgramTime(requestLoopStartTime,"request loop " + count );
+    
+            	System.out.println("-------------------------------------------------------------------------------------------");
+            	//System.out.println("done stuff");
+            	
+            	ExternalInvoke.finishNotify();
+            	
+            	System.out.println("count: " + count);
+            	count ++;
+        }
+      }        
+	        //jb 
+      //  }
+        
+      //JB - added to assess performance of program
+      //http://stackoverflow.com/questions/924208/java-how-do-you-convert-nanoseconds-to-seconds-using-the-timeunit-class
+      //http://stackoverflow.com/questions/6646467/how-to-find-time-taken-to-run-java-program
+        //calcProgramTime(startTime,"total main");         
+        
     }
 
     private void run() {
-        origins.setup();
-        destinations.setup();
-        linkIntoGraph(destinations);
+            	
+            long originStartTime = System.nanoTime();//jb    	
+        	origins.setup();
+        	calcProgramTime(originStartTime,"origin setup ");   //jb
+            //JB add if here....
+        	if (count == 0)
+        	{
+    	    	long destinationsStartTime = System.nanoTime();//jb
+    	        destinations.setup();
+    	        calcProgramTime(destinationsStartTime,"destinations setup ");   //jb
+    	        
+    	        long linkStartTime = System.nanoTime();//jb
+    	        linkIntoGraph(destinations);
+    	        calcProgramTime(linkStartTime,"link into graph ");   //jb
+        	}
+    	
+        //--------------
+        
         // Set up a thread pool to execute searches in parallel
         LOG.info("Number of threads: {}", nThreads);
         ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
@@ -134,7 +238,7 @@ public class BatchProcessor {
                 System.exit(-1);
             }
         }
-        startTime = System.currentTimeMillis();
+        
         int nTasks = 0;
         for (Individual oi : origins) { // using filtered iterator
             ecs.submit(new BatchAnalystTask(nTasks, oi), null);
@@ -159,12 +263,21 @@ public class BatchProcessor {
         } catch (InterruptedException e) {
             LOG.warn("run was interrupted after {} tasks", nCompleted);
         }
+        
+        long closeStartTime = System.nanoTime();//jb
+        
         threadPool.shutdown();
         if (accumulator != null)
             accumulator.finish();
         if (aggregateResultSet != null)
             aggregateResultSet.writeAppropriateFormat(outputPath);
         LOG.info("DONE.");
+        
+        origins.clearIndividuals(origins.getIndividuals()); //jb - this is needed to prevent multiple threads being created from previous runs.
+        //origins.clear(); //jb
+        calcProgramTime(closeStartTime,"close ");   //jb
+        
+
     }
 
     private void projectRunTime(int current, int total) {
@@ -194,13 +307,24 @@ public class BatchProcessor {
         return false;
     }
     
-    private RoutingRequest buildRequest(Individual i) {
+    private RoutingRequest buildRequest(Individual i, boolean returnTrip) {
         RoutingRequest req = prototypeRoutingRequest.clone();
+        //jb
+        
+            if(returnTrip==true)
+            {
+                req.setArriveBy(true);                
+            }
+            else
+            {
+                req.setArriveBy(false);                
+            }
+            req.setModes(new TraverseModeSet(selectedTransportMode)); //jb
         req.setDateTime(date, time, timeZone);
         if (searchCutoffSeconds > 0) {
             req.worstTime = req.dateTime + (req.arriveBy ? -searchCutoffSeconds : searchCutoffSeconds);
         }
-        GenericLocation latLon = new GenericLocation(i.lat, i.lon);
+        String latLon = String.format("%f,%f", i.lat, i.lon);
         req.batch = true;
         if (req.arriveBy)
             req.setTo(latLon);
@@ -214,6 +338,32 @@ public class BatchProcessor {
             return null;
         }
     }
+    
+    /*private RoutingRequest buildRequest(Individual i) {
+        RoutingRequest req = prototypeRoutingRequest.clone();
+        //jb
+            if(returnTrip==true)
+            {
+                req.arriveBy=true;
+            }
+        req.setDateTime(date, time, timeZone);
+        if (searchCutoffSeconds > 0) {
+            req.worstTime = req.dateTime + (req.arriveBy ? -searchCutoffSeconds : searchCutoffSeconds);
+        }
+        String latLon = String.format("%f,%f", i.lat, i.lon);
+        req.batch = true;
+        if (req.arriveBy)
+            req.setTo(latLon);
+        else
+            req.setFrom(latLon);
+        try {
+            req.setRoutingContext(graphService.getGraph(req.routerId));
+            return req;
+        } catch (VertexNotFoundException vnfe) {
+            LOG.debug("no vertex could be created near the origin point");
+            return null;
+        }
+    }*/
     
     /** 
      * Generate samples for (i.e. non-invasively link into the Graph) only those individuals that 
@@ -243,6 +393,9 @@ public class BatchProcessor {
         
         protected final int i;
         protected final Individual oi;
+        private boolean toTripCalculated = false;
+        private boolean returnTripCalculated = false; //indicate if it should calculate the return trip on the next run. This will simply toggle as arriveBy value is toggled.
+        
         
         public BatchAnalystTask(int i, Individual oi) {
             this.i = i;
@@ -251,30 +404,101 @@ public class BatchProcessor {
         
         @Override
         public void run() {
-            LOG.debug("calling origin : {}", oi);
-            RoutingRequest req = buildRequest(oi);
-            if (req != null) {
-                ShortestPathTree spt = sptService.getShortestPathTree(req);
-                // ResultSet should be a local to avoid memory leak
-                ResultSet results = ResultSet.forTravelTimes(destinations, spt);
-                req.cleanup();
-                switch (mode) {
-                case ACCUMULATE:
-                    synchronized (aggregateResultSet) {
-                        accumulator.accumulate(oi.input, results, aggregateResultSet);
+            
+                ResultSet toResults= null; //jb
+                ResultSet fromResults= null; //jb
+                RoutingRequest req =null ;//jb
+                long runStartTime = System.nanoTime();//jb
+    
+                //for(int i =0; i< 2 ; i++) //debug this
+                
+                    while(returnTripCalculated ==false) 
+                    {
+                                    
+                            	LOG.debug("calling origin : {}", oi);
+                            	long rrStartTime = System.nanoTime(); //jb
+                            	
+                            	
+                                 if(toTripCalculated==false){   
+                                    req = buildRequest(oi, false);
+                                    calcProgramTime(rrStartTime,"build routing request total"); //jb
+                                    toTripCalculated = true;
+                                 }
+                                 else{                                                     
+                                    req = buildRequest(oi, true);
+                                    returnTripCalculated = true;
+                                 }
+                            
+                                if (req != null) {                	                    
+                                        	long sptStartTime = System.nanoTime(); //jb
+                                        	ShortestPathTree spt = sptService.getShortestPathTree(req);
+                                        	calcProgramTime(sptStartTime,"spt total"); //jb
+                                            // ResultSet should be a local to avoid memory leak
+                                        	
+                                        	//long resultsTTStartTime = System.nanoTime(); //jb
+                                        	/*ResultSet results = ResultSet.forTravelTimes(destinations, spt);*/
+                                        	
+                                        	ResultSet results = ResultSet.forTravelTimes(destinations, spt);
+                                        	
+                                        	if(returnTripCalculated == true){
+                                        	    fromResults= results;                        	                            	                                       	  
+                                        	}
+                                        	else{
+                                        	    toResults = results;
+                                        	}
+                                                                	                                	
+                                }
+                            }
+                                
+                        // JB sort results
+                    	/*long sortStartTime = System.nanoTime(); //jb
+                        Collections.sort(destinations.getIndividuals(), new IndividualComparator());
+                        calcProgramTime(sortStartTime ,"sort total"); //jb
+        */              if (req != null) {
+                                req.cleanup();
+                                    switch (mode) {
+                                    case ACCUMULATE:
+                                        synchronized (aggregateResultSet) {
+                                            accumulator.accumulate(oi.input, toResults, aggregateResultSet); //jb
+                                        }
+                                        break;
+                                    case AGGREGATE:
+                                        aggregateResultSet.results[i] = aggregator.computeAggregate(toResults);
+                                        break;
+                                    default:
+                                        if(AMENITY_RUN){
+                                            String subName = outputPath.replace("{}", String.format("%s\\%s_%d", selectedTransportMode,oi.label, i));//JB altered the file name
+                                            toResults.writeAppropriateFormat(subName,fromResults);                                            
+                                        }
+                                        else{
+                                            String subName = outputPath.replace("{}", String.format("%s_%d", oi.label, i));
+                                            toResults.writeAppropriateFormat(subName,fromResults);
+                                        }
+                                    }
+                                        
+                                }    
+                                calcProgramTime(runStartTime,"run total");    //jb
                     }
-                    break;
-                case AGGREGATE:
-                    aggregateResultSet.results[i] = aggregator.computeAggregate(results);
-                    break;
-                default:
-                    String subName = outputPath.replace("{}", String.format("%d_%s", i, oi.label));
-                    results.writeAppropriateFormat(subName);
-                }
-                    
-            }
-        }        
-    }    
+                
+               
+               
+    }
+    
+    //JB:
+    private static void calcProgramTime(Long startTime, String label){
+    	   long endTime = System.nanoTime();
+           long elapsedTime = endTime - startTime;
+           double seconds = (double)elapsedTime / 1000000000.0;
+           System.out.println(label + " Took "+ elapsedTime + " ns or " + seconds + " secs");
+    }
+    
+  
+    
+    public static void testCall(String arg){
+    	System.out.println("calling from batch " + arg);
+    }
+    
+    
     
 }
 

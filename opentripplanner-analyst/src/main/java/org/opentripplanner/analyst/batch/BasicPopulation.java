@@ -89,13 +89,17 @@ public class BasicPopulation implements Population {
             // using internal list rather than filtered iterator
             for (Individual indiv : this.individuals) {
                 if ( ! this.skip[i]) {
-                    String[] entries = new String[] { 
+                  
+                	  String[] entries = new String[] { 
                             indiv.label, Double.toString(indiv.lat), Double.toString(indiv.lon), 
-                            Double.toString(indiv.input), Double.toString(results.results[j]) 
-                    };
-                    writer.writeRecord(entries);
+                            Double.toString(indiv.input), Double.toString(results.results[j]) }; 
+                	/*  String[] entries = new String[] { 
+                              indiv.label, Double.toString(indiv.lat), Double.toString(indiv.lon), 
+                              Double.toString(indiv.input), Double.toString(indiv.output)
+                      }; //JB added indiv.output*/
+                	  writer.writeRecord(entries);
                     j++;
-                }
+                  	}              	                  
                 i++;
             }
             writer.close(); // flush writes and close
@@ -106,10 +110,46 @@ public class BasicPopulation implements Population {
         LOG.debug("Done writing population to CSV at {}.", outFileName);
     }
 
+    //jb modified to write return results
+    protected void writeCsv(String outFileName, ResultSet results, ResultSet returnResults) {
+        LOG.debug("Writing population to CSV: {}", outFileName);
+        try {
+            CsvWriter writer = new CsvWriter(outFileName, ',', Charset.forName("UTF8"));
+            writer.writeRecord( new String[] {"label", "lat", "lon", "input", "to","from"} );
+            int i = 0;
+            int j = 0;
+            // using internal list rather than filtered iterator
+            for (Individual indiv : this.individuals) {
+                if ( ! this.skip[i]) {
+                        
+                                  String[] entries = new String[] { 
+                                    indiv.label, Double.toString(indiv.lat), Double.toString(indiv.lon), 
+                                    Double.toString(indiv.input), Double.toString(results.results[j]), Double.toString(returnResults.results[j])}; //JB added return results
+                              writer.writeRecord(entries);
+                              j++;
+                        }
+                i++;
+            }                                                                    
+            writer.close(); // flush writes and close
+        } catch (Exception e) {
+            LOG.error("Error while writing to CSV file: {}", e.getMessage());
+            return;
+        }
+        LOG.debug("Done writing population to CSV at {}.", outFileName);
+    }
+
+    
     @Override
     public void writeAppropriateFormat(String outFileName, ResultSet results) {
         // as a default, save to CSV. override this method in subclasses when more is known about data structure.
         this.writeCsv(outFileName, results);
+    }
+    
+    //jb
+    @Override
+    public void writeAppropriateFormat(String outFileName, ResultSet results, ResultSet fromResults) {
+        // as a default, save to CSV. override this method in subclasses when more is known about data structure.
+        this.writeCsv(outFileName, results,fromResults);
     }
 
     // TODO maybe store skip values in the samples themselves?
