@@ -87,7 +87,7 @@ public class BatchProcessor {
     //JB
     private static int totalLoop = 25;
     private static int count = 0;    
-    private static final boolean AMENITY_RUN = false;
+    private static final boolean AMENITY_RUN = true;
     private static String selectedTransportMode;
     //private static String[] transportModes = {"CAR","TRANSIT","WALK","BICYCLE"};
     //bicycle not working at the moment. And Transit cannot work without walking - must walk to bus stops etc.
@@ -169,6 +169,7 @@ public class BatchProcessor {
 
                 //comment this out when finished
                 selectedTransportMode = "WALK,TRANSIT";
+                /*selectedTransportMode = "CAR";*/
                 
                 long requestLoopStartTime = System.nanoTime();
                 

@@ -176,8 +176,8 @@ public class RoutingContext implements Cloneable {
         LOG.debug("Origin vertex outbound edges {}", this.origin.getOutgoing());
         
         LOG.debug("Destination vertex {}", this.target);
-        LOG.debug("Destination vertex inbound edges {}", this.target.getIncoming());
-        LOG.debug("Destination vertex outbound edges {}", this.target.getOutgoing());
+        /*LOG.debug("Destination vertex inbound edges {}", this.target.getIncoming());
+        LOG.debug("Destination vertex outbound edges {}", this.target.getOutgoing());*/
     }
     
     
