@@ -60,5 +60,8 @@ public interface Population extends Iterable<Individual> {
      * are not known to be aligned on a regular grid in some CRS will be saved as a CSV file.
      */
     public void writeAppropriateFormat(String fileName, ResultSet results);
+    
+    //jb
+    public void writeAppropriateFormat(String fileName, ResultSet results, ResultSet returnResults );
 
 }
