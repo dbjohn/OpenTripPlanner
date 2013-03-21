@@ -112,8 +112,14 @@ public abstract class RoutingResource {
     /** The list of preferred routes.  The format is agency_route, so TriMet_100. */
     @DefaultValue("") @QueryParam("preferredRoutes") protected List<String> preferredRoutes;
     
+    /** The comma-separated list of preferred agencies. */
+    @DefaultValue("") @QueryParam("preferredAgencies") protected List<String> preferredAgencies;
+    
     /** The list of unpreferred routes.  The format is agency_route, so TriMet_100. */
     @DefaultValue("") @QueryParam("unpreferredRoutes") protected List<String> unpreferredRoutes;
+    
+    /** The comma-separated list of unpreferred agencies. */
+    @DefaultValue("") @QueryParam("unpreferredAgencies") protected List<String> unpreferredAgencies;
 
     /** Whether intermediate stops -- those that the itinerary passes in a vehicle, but 
      *  does not board or alight at -- should be returned in the response.  For example,
@@ -215,8 +221,8 @@ public abstract class RoutingResource {
     protected RoutingRequest buildRequest(int n) throws ParameterException {
         RoutingRequest request = prototypeRoutingRequest.clone();
         request.setRouterId(get(routerId, n, request.getRouterId()));
-        request.setFrom(get(fromPlace, n, request.getFromPlace().getRepresentation()));
-        request.setTo(get(toPlace, n, request.getToPlace().getRepresentation()));
+        request.setFromString(get(fromPlace, n, request.getFromPlace().getRepresentation()));
+        request.setToString(get(toPlace, n, request.getToPlace().getRepresentation()));
         {
             //FIXME: get defaults for these from request
             String d = get(date, n, null);
@@ -275,13 +281,15 @@ public abstract class RoutingResource {
         /* intermediate places and their ordering are shared because they are themselves a list */
         if (intermediatePlaces != null && intermediatePlaces.size() > 0 
             && ! intermediatePlaces.get(0).equals("")) {
-            request.setIntermediatePlaces(intermediatePlaces);
+            request.setIntermediatePlacesFromStrings(intermediatePlaces);
         }
         if (intermediatePlacesOrdered == null)
             intermediatePlacesOrdered = request.isIntermediatePlacesOrdered();
         request.setIntermediatePlacesOrdered(intermediatePlacesOrdered);
         request.setPreferredRoutes(get(preferredRoutes, n, request.getPreferredRouteStr()));
+        request.setPreferredAgencies(get(preferredAgencies, n, request.getPreferredAgenciesStr()));
         request.setUnpreferredRoutes(get(unpreferredRoutes, n, request.getUnpreferredRouteStr()));
+        request.setUnpreferredAgencies(get(unpreferredAgencies, n, request.getUnpreferredAgenciesStr()));
         request.setBannedRoutes(get(bannedRoutes, n, request.getBannedRouteStr()));
         request.setBannedAgencies(get(bannedAgencies, n, request.getBannedAgenciesStr()));
         HashMap<AgencyAndId, BannedStopSet> bannedTripMap = makeBannedTripMap(get(bannedTrips, n, null));

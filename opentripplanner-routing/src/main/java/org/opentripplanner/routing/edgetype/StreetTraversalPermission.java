@@ -38,12 +38,12 @@ public enum StreetTraversalPermission {
     // This is a configurable motor vehicle that is not a vanilla car.
     // e.g. truck, motor bike, etc.
     CUSTOM_MOTOR_VEHICLE(8),
-    PEDESTRIAN_AND_MOTOR(8 | 1),
-    BICYCLE_AND_MOTOR(8 | 2),
+    PEDESTRIAN_AND_CUSTOM_MOTOR_VEHICLE(8 | 1),
+    BICYCLE_AND_CUSTOM_MOTOR_VEHICLE(8 | 2),
     PEDESTRIAN_BICYCLE_MOTOR(8 | 2 | 1),
     ALL_DRIVING(8 | 4),
-    PEDESTRIAN_CAR_MOTOR(8 | 4 | 1),
-    BICYCLE_CAR_MOTOR(8 | 4 | 2),
+    PEDESTRIAN_AND_DRIVING(8 | 4 | 1),
+    BICYCLE_AND_DRIVING(8 | 4 | 2),
     ALL(8 | 4 | 2 | 1),
     CROSSHATCHED(16); // this street exists in both Beszel and Ul Qoma; traffic direction may depend on which city you're in.
 
@@ -117,5 +117,22 @@ public enum StreetTraversalPermission {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Returns true if there are any modes allowed by this permission.
+     * @return
+     */
+    public boolean allowsAnything() {
+        return !this.allowsNothing();
+    }
+    
+    /**
+     * Returns true if there no modes are by this permission.
+     * @return
+     */
+    public boolean allowsNothing() {
+        // TODO(flamholz): what about CROSSHATCHED?
+        return this == StreetTraversalPermission.NONE;
     }
 }

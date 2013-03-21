@@ -31,6 +31,7 @@ import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.core.StateEditor;
 import org.opentripplanner.routing.core.TraverseMode;
+import org.opentripplanner.routing.core.TraverseModeSet;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.patch.Alert;
 import org.opentripplanner.routing.util.ElevationProfileSegment;
@@ -136,6 +137,7 @@ public class PlainStreetEdge extends StreetEdge implements Cloneable {
             String name, double length,
             StreetTraversalPermission permission, boolean back) {
         // use a default car speed of ~25 mph for splitter vertices and the like
+        // TODO(flamholz): do something smarter with the car speed here.
         this(v1, v2, geometry, name, length, permission, back, 11.2f);
     }
 
@@ -183,9 +185,14 @@ public class PlainStreetEdge extends StreetEdge implements Cloneable {
             }
         }
         
-        return permission.allows(options.getModes());
+        return canTraverse(options.getModes());
     }
-
+    
+    @Override
+    public boolean canTraverse(TraverseModeSet modes) {
+        return permission.allows(modes);
+    }
+    
     private boolean canTraverse(RoutingRequest options, TraverseMode mode) {
         if (options.wheelchairAccessible) {
             if (!wheelchairAccessible) {
@@ -364,7 +371,6 @@ public class PlainStreetEdge extends StreetEdge implements Cloneable {
             time += turnTime;
         }
 
-        s1.incrementWalkDistance(length);
         int timeLong = (int) time;
         if (timeLong != time) {
             timeLong++;
@@ -372,7 +378,6 @@ public class PlainStreetEdge extends StreetEdge implements Cloneable {
         s1.incrementTimeInSeconds(timeLong);
         
         if (traverseMode != TraverseMode.CAR) {
-            // TODO(flamholz): are we incrementing 2x for non-car modes?
             s1.incrementWalkDistance(length);
         }
 
