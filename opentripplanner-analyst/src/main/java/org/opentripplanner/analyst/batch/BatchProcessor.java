@@ -430,12 +430,7 @@ public class BatchProcessor {
             if(isArriveBy){
                 this.toTripTask = toTripTask;
             }            
-        }
-        
-        //HEY MAYBE YOU DON'T NEED JOIN IF YOU CAN USE CYCLIC BARRIER
-   /*     public void setThreadId(long threadID){
-            this.threadID = threadID;            
-        }*/
+        }        
         
         public ResultSet getResults(){
             return results;
@@ -444,11 +439,6 @@ public class BatchProcessor {
         
         @Override
         public void run() {
-            
-//            if (isArriveBy){         
-//                toTripTask.setThreadId(Thread.currentThread().getId()); //give the other thread a reference to the current thread's thread id            
-//            }
-            
                 
                 
                 RoutingRequest req =null ;//jb
@@ -470,20 +460,11 @@ public class BatchProcessor {
                     	long sptStartTime = System.nanoTime(); //jb
                     	ShortestPathTree spt = sptService.getShortestPathTree(req);
                     	calcProgramTime(sptStartTime,"spt total"); //jb
-                        // ResultSet should be a local to avoid memory leak
-                    	
                     	//long resultsTTStartTime = System.nanoTime(); //jb
                     	/*ResultSet results = ResultSet.forTravelTimes(destinations, spt);*/
                     	
                     	results = ResultSet.forTravelTimes(destinations, spt);
-                    	
-                /*    	if(isArriveBy == true){
-                    	    toResults= results;                        	                            	                                       	  
-                    	}
-                    	else{
-                    	    results = results;
-                    	}*/
-                                                    	                                	
+                    	                                               	                                
                     }
                 
                 try {
@@ -528,10 +509,7 @@ public class BatchProcessor {
                                 }    
                                 calcProgramTime(runStartTime,"run total");    //jb
                                 
-                }//end if
-
-                //TO DO : signal here to app that results have been written.
-                
+                }//end if                      
              
                 //await again. This is mainly needed for the non-file writer thread so that it doesn't distract or use up resources while the writing is done. 
                         try {
