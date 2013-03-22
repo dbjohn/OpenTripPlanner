@@ -91,6 +91,6 @@ public class ExternalInvoke {
 	
 	{
 		System.out.println("From external invoke: " + arg);
-		BatchProcessor.testCall("external test");
+		
 	}
 }
