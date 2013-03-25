@@ -87,9 +87,9 @@ public class BatchProcessor {
     private ResultSet aggregateResultSet = null;
     
     //JB
-    private static int totalLoop = 1;
+    private static int totalLoop = 50;
     private static int count = 0;    
-    private static final boolean AMENITY_RUN = true;
+    private static final boolean AMENITY_RUN = false;
     private static String selectedTransportMode;
     //private static String[] transportModes = {"CAR","TRANSIT","WALK","BICYCLE"};
     //bicycle not working at the moment. And Transit cannot work without walking - must walk to bus stops etc.
@@ -162,19 +162,19 @@ public class BatchProcessor {
             while(count < totalLoop)//jb
             {
             
-                //UNCOMMMENT OUT AGAIN
-               /* if(count ==0)
+                //uncomment out if testing
+                if(count ==0)
                 {
                     
                         ExternalInvoke.setUpConnection();
                 }
                 
                 
-                selectedTransportMode = ExternalInvoke.awaitRequest();*/
+                selectedTransportMode = ExternalInvoke.awaitRequest();
 
-                //comment this out when finished
+                //comment this out when not testing
                 //selectedTransportMode = "WALK,TRANSIT";
-                selectedTransportMode = "CAR";
+                //selectedTransportMode = "CAR";
                 
                 long requestLoopStartTime = System.nanoTime();
                 
@@ -205,18 +205,18 @@ public class BatchProcessor {
       //JB - added to assess performance of program
       //http://stackoverflow.com/questions/924208/java-how-do-you-convert-nanoseconds-to-seconds-using-the-timeunit-class
       //http://stackoverflow.com/questions/6646467/how-to-find-time-taken-to-run-java-program
-        //calcProgramTime(startTime,"total main");         
+        calcProgramTime(startTime,"total main");         
         
     }
 
     private void run() {
             	
-            long originStartTime = System.nanoTime();//jb    	
-        	origins.setup();
-        	calcProgramTime(originStartTime,"origin setup ");   //jb
-            //JB add if here....
-        	if (count == 0)
-        	{
+        long originStartTime = System.nanoTime();//jb    	
+    	origins.setup();
+    	calcProgramTime(originStartTime,"origin setup ");   //jb
+        //JB add if here....
+    	if (count == 0)
+    	{
     	    	long destinationsStartTime = System.nanoTime();//jb
     	        destinations.setup();
     	        calcProgramTime(destinationsStartTime,"destinations setup ");   //jb
@@ -224,7 +224,7 @@ public class BatchProcessor {
     	        long linkStartTime = System.nanoTime();//jb
     	        linkIntoGraph(destinations);
     	        calcProgramTime(linkStartTime,"link into graph ");   //jb
-        	}
+    	}
     	
         //--------------
         
@@ -355,32 +355,7 @@ public class BatchProcessor {
             return null;
         }
     }
-    
-    /*private RoutingRequest buildRequest(Individual i) {
-        RoutingRequest req = prototypeRoutingRequest.clone();
-        //jb
-            if(returnTrip==true)
-            {
-                req.arriveBy=true;
-            }
-        req.setDateTime(date, time, timeZone);
-        if (searchCutoffSeconds > 0) {
-            req.worstTime = req.dateTime + (req.arriveBy ? -searchCutoffSeconds : searchCutoffSeconds);
-        }
-        String latLon = String.format("%f,%f", i.lat, i.lon);
-        req.batch = true;
-        if (req.arriveBy)
-            req.setTo(latLon);
-        else
-            req.setFrom(latLon);
-        try {
-            req.setRoutingContext(graphService.getGraph(req.routerId));
-            return req;
-        } catch (VertexNotFoundException vnfe) {
-            LOG.debug("no vertex could be created near the origin point");
-            return null;
-        }
-    }*/
+      
     
     /** 
      * Generate samples for (i.e. non-invasively link into the Graph) only those individuals that 
@@ -443,19 +418,13 @@ public class BatchProcessor {
                 
                 RoutingRequest req =null ;//jb
                 long runStartTime = System.nanoTime();//jb
-    
-  
-                        
+                     
             	LOG.debug("calling origin : {}", oi);
         	long rrStartTime = System.nanoTime(); //jb
-                            	
-                            	
-   
+                            	   
                 req = buildRequest(oi, isArriveBy);
                 calcProgramTime(rrStartTime,"build routing request total"); //jb
                 
-
-                            
                 if (req != null) {                	                    
                     	long sptStartTime = System.nanoTime(); //jb
                     	ShortestPathTree spt = sptService.getShortestPathTree(req);
@@ -464,7 +433,6 @@ public class BatchProcessor {
                     	/*ResultSet results = ResultSet.forTravelTimes(destinations, spt);*/
                     	
                     	results = ResultSet.forTravelTimes(destinations, spt);
-                    	                                               	                                
                     }
                 
                 try {
@@ -477,7 +445,7 @@ public class BatchProcessor {
                        
                 if(this.isArriveBy)
                 {
-                    ResultSet toResults= toTripTask.getResults();       //since results holds the "from" direction results for this file writer thread. This line gets the "to" direction results from the other task.
+                    ResultSet toResults = toTripTask.getResults();       //since results holds the "from" direction results for this file writer thread. This line gets the "to" direction results from the other task.
                     // JB sort results
                     	/*long sortStartTime = System.nanoTime(); //jb
                         Collections.sort(destinations.getIndividuals(), new IndividualComparator());
@@ -502,7 +470,7 @@ public class BatchProcessor {
                                             String subName = outputPath.replace("{}", String.format("%s_%d", oi.label, i));
                                             toResults.writeAppropriateFormat(subName,results);
                                             // uncomment out when done.
-                                            // ExternalInvoke.finishNotify();//jb signal to the waiting app that results have been written to file and it can proceed.
+                                            ExternalInvoke.finishNotify();//jb signal to the waiting app that results have been written to file and it can proceed.
                                         }
                                     }
                                         
