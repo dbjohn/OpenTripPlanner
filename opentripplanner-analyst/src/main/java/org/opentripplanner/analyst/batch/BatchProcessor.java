@@ -89,11 +89,13 @@ public class BatchProcessor {
     //JB
     private static int totalLoop = 50;
     private static int count = 0;    
-    private static final boolean AMENITY_RUN = false;
+    private static final boolean AMENITY_RUN = true;
     private static String selectedTransportMode;
     //private static String[] transportModes = {"CAR","TRANSIT","WALK","BICYCLE"};
     //bicycle not working at the moment. And Transit cannot work without walking - must walk to bus stops etc.
-    private static String[] transportModes = {"CAR","TRANSIT,WALK","WALK"};
+    private static String[] transportModes = {"CAR","TRANSIT,WALK","WALK"}; //this is the recommended one.
+    
+    //these other combinations for testing. Can be removed...
     //private static String[] transportModes = {"CAR","TRANSIT,WALK"};
     //private static String[] transportModes = {"TRANSIT,WALK","CAR"};
     //private static String[] transportModes = {"CAR"};
@@ -479,7 +481,7 @@ public class BatchProcessor {
                                 
                 }//end if                      
              
-                //await again. This is mainly needed for the non-file writer thread so that it doesn't distract or use up resources while the writing is done. 
+                //await again. This is mainly needed for the non-file writer thread so that it doesn't distract or use up resources while the writing is done as soon as possible and let the rails app continue. 
                         try {
                             barrier.await();
                         } catch (InterruptedException e) {
