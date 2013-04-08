@@ -86,26 +86,28 @@ public class BatchProcessor {
     private long lastCheckpointTime = 0;
     private ResultSet aggregateResultSet = null;
     
-    //JB
-    private static int totalLoop = 50;
-    private static int count = 0;    
-    private static final boolean AMENITY_RUN = true;
-    private static String selectedTransportMode;
-    //private static String[] transportModes = {"CAR","TRANSIT","WALK","BICYCLE"};
-    //bicycle not working at the moment. And Transit cannot work without walking - must walk to bus stops etc.
-    private static String[] transportModes = {"CAR","TRANSIT,WALK","WALK"}; //this is the recommended one.
     
-    //these other combinations for testing. Can be removed...
-    //private static String[] transportModes = {"CAR","TRANSIT,WALK"};
-    //private static String[] transportModes = {"TRANSIT,WALK","CAR"};
-    //private static String[] transportModes = {"CAR"};
-    //private static String[] transportModes = {"BICYCLE,WALK"};
-    /*private static String[] transportModes = {"TRANSIT"};*/
-    /*private static String[] transportModes = {"TRANSIT,WALK"};*/
-    /*private static String[] transportModes = {"BICYCLE"};*/
+    //jb all source code and comment lines written or modified by author (John Brennan) contain the following comment containing the author's initials (jb) at the end of the line //jb
+    //ambiguities with same line modifications will be explained in comment.
+    //Everything else is part of the standard Opentripplanner project source code. //jb
+    // the best way to find all such lines is to use ctrl+f ... //jb
+    private static int totalLoop = 50; //jb
+    private static int count = 0;    //jb
+    private static final boolean AMENITY_RUN = false; //jb
+    private static String selectedTransportMode; //jb
+    //private static String[] transportModes = {"CAR","TRANSIT","WALK","BICYCLE"}; //jb
+    //bicycle not working at the moment. And Transit cannot work without walking - must walk to bus stops etc. //jb
+    private static String[] transportModes = {"CAR","TRANSIT,WALK","WALK"}; //this is the recommended one. //jb
     
-    
-    //jb//
+    //these other combinations for testing. Can be removed... //jb
+    //private static String[] transportModes = {"CAR","TRANSIT,WALK"}; //jb
+    //private static String[] transportModes = {"TRANSIT,WALK","CAR"}; //jb
+    //private static String[] transportModes = {"CAR"}; //jb
+    //private static String[] transportModes = {"BICYCLE,WALK"}; //jb
+    /*private static String[] transportModes = {"TRANSIT"};*/ //jb
+    /*private static String[] transportModes = {"TRANSIT,WALK"};*/ //jb
+    /*private static String[] transportModes = {"BICYCLE"};*/ //jb
+       
     
     /** Cut off the search instead of building a full path tree. Can greatly improve run times. */
     public void setSearchCutoffMinutes(int minutes) {
@@ -114,10 +116,9 @@ public class BatchProcessor {
     
     public static void main(String[] args) throws IOException {
             	
-    	//JB add to assess performance of program.
-    	//check time
-    	long startTime = System.nanoTime();
-    	//
+
+    	//check time //jb
+    	long startTime = System.nanoTime();        //jb add to assess performance of program.
     	
     	org.springframework.core.io.Resource appContextResource;
         if( args.length == 0) {
@@ -130,25 +131,24 @@ public class BatchProcessor {
         GenericApplicationContext ctx = new GenericApplicationContext();
         XmlBeanDefinitionReader xmlReader = new XmlBeanDefinitionReader(ctx);
         xmlReader.loadBeanDefinitions(appContextResource);
-        //jb
-        long refreshStartTime = System.nanoTime();
+
+        long refreshStartTime = System.nanoTime();         //jb
     
         ctx.refresh();
-        //jb
-        calcProgramTime(refreshStartTime,"context refresh");       
+
+        calcProgramTime(refreshStartTime,"context refresh");         //jb       
        
         ctx.registerShutdownHook();
         BatchProcessor processor = ctx.getBean(BatchProcessor.class);
 
-        //Use this for calculating amenity times
-        ///////////////////////////////////////////////
-        
-        if(AMENITY_RUN){
+        //Use this for calculating amenity times //jb
+        ///////////////////////////////////////////// //jb        
+        if(AMENITY_RUN){          //jb
                             
-            for(String mode: transportModes){
+            for(String mode: transportModes){         //jb
                 
-                System.out.println(mode);
-                selectedTransportMode = mode;
+                System.out.println(mode);         //jb
+                selectedTransportMode = mode;         //jb
             
                 if (processor == null)
                 {
@@ -157,28 +157,28 @@ public class BatchProcessor {
                 else{               
                     processor.run();            
                 }
-                count ++;
+                count ++;         //jb
             }
         }              
-        else { //Use this for calculating the commute time
+        else { //Use this for calculating the commute time //jb
             while(count < totalLoop)//jb
             {
             
-                //uncomment out if testing
-                if(count ==0)
+                //comment out if testing
+                if(count ==0)           //jb
                 {
                     
-                        ExternalInvoke.setUpConnection();
+                        ExternalInvoke.setUpConnection();         //jb
                 }
                 
                 
-                selectedTransportMode = ExternalInvoke.awaitRequest();
+                selectedTransportMode = ExternalInvoke.awaitRequest();         //jb
 
-                //comment this out when not testing
-                //selectedTransportMode = "WALK,TRANSIT";
-                //selectedTransportMode = "CAR";
+                //comment this out when not testing 
+                //selectedTransportMode = "WALK,TRANSIT";         //jb
+                //selectedTransportMode = "CAR";         //jb
                 
-                long requestLoopStartTime = System.nanoTime();
+                long requestLoopStartTime = System.nanoTime(); //jb
                 
             	if (processor == null)
             	{
@@ -188,26 +188,17 @@ public class BatchProcessor {
     	            processor.run();	        
     	           }
                             
-    	        //jb
-            	calcProgramTime(requestLoopStartTime,"request loop " + count );
+    	       
+            	calcProgramTime(requestLoopStartTime,"request loop " + count ); //jb
     
-            	System.out.println("-------------------------------------------------------------------------------------------");
-            	//System.out.println("done stuff");
-            	
-            	//DON'T USE THIS ONE, USE THE ONE LATER.
-            	//ExternalInvoke.finishNotify();
-            	
-            	System.out.println("count: " + count);
-            	count ++;
+            	count ++; //jb
         }
       }        
-	        //jb 
-      //  }
+ 
+
         
-      //JB - added to assess performance of program
-      //http://stackoverflow.com/questions/924208/java-how-do-you-convert-nanoseconds-to-seconds-using-the-timeunit-class
-      //http://stackoverflow.com/questions/6646467/how-to-find-time-taken-to-run-java-program
-        calcProgramTime(startTime,"total main");         
+      //jb - added to assess performance of program
+        calcProgramTime(startTime,"total main");       //  jb         
         
     }
 
@@ -216,9 +207,9 @@ public class BatchProcessor {
         long originStartTime = System.nanoTime();//jb    	
     	origins.setup();
     	calcProgramTime(originStartTime,"origin setup ");   //jb
-        //JB add if here....
-    	if (count == 0)
-    	{
+
+    	if (count == 0) //jb
+    	{ //jb
     	    	long destinationsStartTime = System.nanoTime();//jb
     	        destinations.setup();
     	        calcProgramTime(destinationsStartTime,"destinations setup ");   //jb
@@ -227,8 +218,7 @@ public class BatchProcessor {
     	        linkIntoGraph(destinations);
     	        calcProgramTime(linkStartTime,"link into graph ");   //jb
     	}
-    	
-        //--------------
+    	        
         
         // Set up a thread pool to execute searches in parallel
         LOG.info("Number of threads: {}", nThreads);
@@ -256,15 +246,15 @@ public class BatchProcessor {
         int nTasks = 0;
         for (Individual oi : origins) { // using filtered iterator
             
-            CyclicBarrier barrier = new CyclicBarrier(2); //cyclic barrier to ensure both tasks finish calculating results before they are written to file.
-            //submit two tasks - 1, for "to" direction and the other for the "from" direction
-            BatchAnalystTask toTripTask = new BatchAnalystTask(nTasks, oi, false, null, barrier);
+            CyclicBarrier barrier = new CyclicBarrier(2); //cyclic barrier to ensure both tasks finish calculating results before they are written to file. //jb
+            //submit two tasks - 1, for "to" direction and the other for the "from" direction //jb
+            BatchAnalystTask toTripTask = new BatchAnalystTask(nTasks, oi, false, null, barrier); //jb
             
-            ecs.submit(toTripTask, null);
+            ecs.submit(toTripTask, null); //jb 
             //pass reference to toTrip task into from trip task
-            ecs.submit(new BatchAnalystTask(nTasks, oi, true, toTripTask, barrier), null);
+            ecs.submit(new BatchAnalystTask(nTasks, oi, true, toTripTask, barrier), null); //jb
             
-            nTasks += 2; //jb - 2 tasks were submited, so increment by 2
+            nTasks += 2; //jb : 2 tasks were submited, so increment by 2
         }
         LOG.info("created {} tasks.", nTasks);
         int nCompleted = 0;
@@ -329,11 +319,10 @@ public class BatchProcessor {
         return false;
     }
     
-    private RoutingRequest buildRequest(Individual i, boolean isArriveBy) {
+    private RoutingRequest buildRequest(Individual i, boolean isArriveBy) { //jb - I only added the isArriveBy argument on this line. this method was previously there.
         RoutingRequest req = prototypeRoutingRequest.clone();
-        //jb
         
-            req.setArriveBy(isArriveBy);                
+            req.setArriveBy(isArriveBy);        //jb                
             
             req.setModes(new TraverseModeSet(selectedTransportMode)); //jb
         req.setDateTime(date, time, timeZone);
@@ -390,8 +379,8 @@ public class BatchProcessor {
         
         private boolean isArriveBy;         //jb
         private BatchAnalystTask toTripTask = null;        //jb, reference of the to thread for the from thread  need for designating the file writer
-        private ResultSet results; 
-        CyclicBarrier barrier;
+        private ResultSet results; //jb
+        CyclicBarrier barrier; //jb
         
         
         public BatchAnalystTask(int i, Individual oi) {
@@ -399,19 +388,19 @@ public class BatchProcessor {
             this.oi = oi;
         }
         
-        public BatchAnalystTask(int i, Individual oi, boolean isArriveBy, BatchAnalystTask toTripTask, CyclicBarrier barrier) {
-            this.i = i;
-            this.oi = oi;
-            this.isArriveBy = isArriveBy;
-            this.barrier = barrier; 
-            if(isArriveBy){
-                this.toTripTask = toTripTask;
-            }            
-        }        
+        public BatchAnalystTask(int i, Individual oi, boolean isArriveBy, BatchAnalystTask toTripTask, CyclicBarrier barrier) { //jb
+            this.i = i; //jb
+            this.oi = oi;//jb
+            this.isArriveBy = isArriveBy;//jb
+            this.barrier = barrier; //jb
+            if(isArriveBy){//jb
+                this.toTripTask = toTripTask;//jb
+            }            //jb
+        }        //jb
         
-        public ResultSet getResults(){
-            return results;
-        }
+        public ResultSet getResults(){ //jb
+            return results; //jb
+        } //jb
         
         
         @Override
@@ -424,7 +413,7 @@ public class BatchProcessor {
             	LOG.debug("calling origin : {}", oi);
         	long rrStartTime = System.nanoTime(); //jb
                             	   
-                req = buildRequest(oi, isArriveBy);
+                req = buildRequest(oi, isArriveBy); //jb -simply added the extra isArriveBy argument
                 calcProgramTime(rrStartTime,"build routing request total"); //jb
                 
                 if (req != null) {                	                    
@@ -432,46 +421,42 @@ public class BatchProcessor {
                     	ShortestPathTree spt = sptService.getShortestPathTree(req);
                     	calcProgramTime(sptStartTime,"spt total"); //jb
                     	//long resultsTTStartTime = System.nanoTime(); //jb
-                    	/*ResultSet results = ResultSet.forTravelTimes(destinations, spt);*/
+
                     	
                     	results = ResultSet.forTravelTimes(destinations, spt);
                     }
                 
-                try {
-                    barrier.await(); //wait until both the to and from results have been calculated.
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (BrokenBarrierException e) {
-                    e.printStackTrace();
-                } 
+                try { //jb
+                    barrier.await(); //jb //wait until both the to and from results have been calculated.
+                } catch (InterruptedException e) { //jb
+                    e.printStackTrace(); //jb
+                } catch (BrokenBarrierException e) { //jb
+                    e.printStackTrace(); //jb
+                }  //jb
                        
-                if(this.isArriveBy)
-                {
-                    ResultSet toResults = toTripTask.getResults();       //since results holds the "from" direction results for this file writer thread. This line gets the "to" direction results from the other task.
-                    // JB sort results
-                    	/*long sortStartTime = System.nanoTime(); //jb
-                        Collections.sort(destinations.getIndividuals(), new IndividualComparator());
-                        calcProgramTime(sortStartTime ,"sort total"); //jb
-        */              if (req != null) {
+                if(this.isArriveBy) //jb
+                { //jb
+                    ResultSet toResults = toTripTask.getResults();       //jb //since results holds the "from" direction results for this file writer thread. This line gets the "to" direction results from the other task.
+
+                        if (req != null) {
                                 req.cleanup();
                                     switch (mode) {
                                     case ACCUMULATE:
                                         synchronized (aggregateResultSet) {
-                                            accumulator.accumulate(oi.input, toResults, aggregateResultSet); //jb
+                                            accumulator.accumulate(oi.input, toResults, aggregateResultSet); 
                                         }
                                         break;
                                     case AGGREGATE:
                                         aggregateResultSet.results[i] = aggregator.computeAggregate(toResults);
                                         break;
                                     default:
-                                        if(AMENITY_RUN){
-                                            String subName = outputPath.replace("{}", String.format("%s\\%s_%d", selectedTransportMode,oi.label, i));//JB altered the file name
-                                            toResults.writeAppropriateFormat(subName,results);                                            
-                                        }
-                                        else{
-                                            String subName = outputPath.replace("{}", String.format("%s_%d", oi.label, i));
-                                            toResults.writeAppropriateFormat(subName,results);
-                                            // uncomment out when done.
+                                        if(AMENITY_RUN){ //jb
+                                            String subName = outputPath.replace("{}", String.format("%s\\%s_%d", selectedTransportMode,oi.label, i));//jb altered the file name 
+                                            toResults.writeAppropriateFormat(subName,results); //jb - method call sends both results arrays.                                            
+                                        } //jb
+                                        else{ //jb
+                                            String subName = outputPath.replace("{}", String.format("%s_%d", oi.label, i));  
+                                            toResults.writeAppropriateFormat(subName,results); //jb
                                             ExternalInvoke.finishNotify();//jb signal to the waiting app that results have been written to file and it can proceed.
                                         }
                                     }
@@ -479,30 +464,32 @@ public class BatchProcessor {
                                 }    
                                 calcProgramTime(runStartTime,"run total");    //jb
                                 
-                }//end if                      
+                }//end if                      //jb
              
-                //await again. This is mainly needed for the non-file writer thread so that it doesn't distract or use up resources while the writing is done as soon as possible and let the rails app continue. 
-                        try {
-                            barrier.await();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (BrokenBarrierException e) {
-                            e.printStackTrace();
-                        }
+              //jb//await again. This is mainly needed for the non-file writer thread so that it doesn't distract or use up resources while the writing is done as soon as possible and let the rails app continue. 
+                        try { //jb
+                            barrier.await(); //jb
+                        } catch (InterruptedException e) { //jb
+                            e.printStackTrace(); //jb
+                        } catch (BrokenBarrierException e) { //jb
+                            e.printStackTrace(); //jb
+                        } //jb
                 
-                    }
+                    } //jb
                 
                
                
     }
     
-    //JB:
-    private static void calcProgramTime(Long startTime, String label){
-    	   long endTime = System.nanoTime();
-           long elapsedTime = endTime - startTime;
-           double seconds = (double)elapsedTime / 1000000000.0;
-           System.out.println(label + " Took "+ elapsedTime + " ns or " + seconds + " secs");
-    }
+    //jb based on some code inspired here:
+    /*http://stackoverflow.com/questions/924208/java-how-do-you-convert-nanoseconds-to-seconds-using-the-timeunit-class //jb
+        //http://stackoverflow.com/questions/6646467/how-to-find-time-taken-to-run-java-program //jb
+*/    private static void calcProgramTime(Long startTime, String label){ //jb
+    	   long endTime = System.nanoTime(); //jb
+           long elapsedTime = endTime - startTime; //jb
+           double seconds = (double)elapsedTime / 1000000000.0; //jb
+           System.out.println(label + " Took "+ elapsedTime + " ns or " + seconds + " secs"); //jb
+    } //jb
     
   
     

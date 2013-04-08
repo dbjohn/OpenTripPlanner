@@ -15,17 +15,13 @@
     
     <!-- specify a GraphService, configuring the path to the serialized Graphs -->   
     <bean id="graphService" class="org.opentripplanner.routing.impl.GraphServiceImpl">
-        <property name="path" value="C:\otp\graph_obj" />        
-        <!--I commented out this line because it was causing an error  <property name="defaultRouterId" value="arbor" />-->
+        <property name="path" value="C:\otp\graph_obj" />                
     </bean>
 
 <!-- load the origin population from a comma-separated flat text file -->
 
 	<bean id="origins" class="org.opentripplanner.analyst.batch.CSVPopulation">
-        <!-- <property name="sourceFilename" value="C:\Users\John\Programming\Git\OpenTripPlanner\BatchJB\Dublin\Origins.csv" /> -->
-        <property name="sourceFilename" value="C:\Users\John\Google_Drive\Folders_from_Skydrive\DIT\Year_4\Final_year_project\Property_site\source_code\Main\property_site\other_files\commute\otp_origin\Origin.csv" />
-        <!-- <property name="sourceFilename" value="C:\Users\John\Google_Drive\Folders_from_Skydrive\DIT\Year_4\Final_year_project\Property_site\source_code\Main\property_site\RubyCode\BatchProcessorCall\CSV\OTP_files\all_properties.csv" /> -->
-        <!-- <property name="sourceFilename" value="C:\Users\John\Google_Drive\Folders_from_Skydrive\DIT\Year_4\Final_year_project\Property_site\source_code\Main\property_site\RubyCode\BatchProcessorCall\temp.csv" /> -->        
+        <property name="sourceFilename" value="C:\Users\John\Google_Drive\Folders_from_Skydrive\DIT\Year_4\Final_year_project\Property_site\source_code\Main\property_site\other_files\commute\otp_origin\Origin.csv" />        
         <property name="labelCol" value="0" />
         <property name="latCol" value="1" />
         <property name="lonCol" value="2" />
@@ -44,13 +40,8 @@
 	</bean>
 
 <!--Destinations CSV -->
-	<bean id="destinations" class="org.opentripplanner.analyst.batch.CSVPopulation">
-        <!-- <property name="sourceFilename" value="C:\Users\John\Programming\Git\OpenTripPlanner\BatchJB\Origins.csv" /> -->
-<!--         <property name="sourceFilename" value="C:\Users\John\Programming\Git\OpenTripPlanner\BatchJB\Dublin\Destinations.csv" /> -->
-        <property name="sourceFilename" value="C:\Users\John\Google_Drive\Folders_from_Skydrive\DIT\Year_4\Final_year_project\Property_site\source_code\Main\property_site\other_files\properties\all_properties.csv" />
-        
-        <!-- <property name="sourceFilename" value="C:\Users\John\Programming\Git\OpenTripPlanner\BatchJB\Destinations_simple_alternative.csv" /> -->
-        <!-- <property name="sourceFilename" value="C:\Users\John\Google_Drive\Folders_from_Skydrive\DIT\Year_4\Final_year_project\Property_site\source_code\Main\property_site\RubyCode\BatchProcessorCall\100_dublin_coordinates.csv" /> -->        
+	<bean id="destinations" class="org.opentripplanner.analyst.batch.CSVPopulation">        
+        <property name="sourceFilename" value="C:\Users\John\Google_Drive\Folders_from_Skydrive\DIT\Year_4\Final_year_project\Property_site\source_code\Main\property_site\other_files\properties\all_properties.csv" />        
         <property name="labelCol" value="0" />
         <property name="latCol" value="1" />
         <property name="lonCol" value="2" />
@@ -93,9 +84,7 @@
         -->         
 	</bean>
 
-	<bean id="prototypeRoutingRequest" class="org.opentripplanner.routing.core.RoutingRequest">
-		<!-- Set default routing parameters here -->
-        <!--I commented this out because I think it was the source of errors <property name="routerId" value="arbor" /> -->
+	<bean id="prototypeRoutingRequest" class="org.opentripplanner.routing.core.RoutingRequest">		
         <property name="maxWalkDistance" value="2000" />        
         <property name="clampInitialWait" value="1800" />
         <property name="arriveBy" value="false" />

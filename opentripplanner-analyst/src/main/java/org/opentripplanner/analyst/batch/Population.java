@@ -61,7 +61,7 @@ public interface Population extends Iterable<Individual> {
      */
     public void writeAppropriateFormat(String fileName, ResultSet results);
     
-    //jb
-    public void writeAppropriateFormat(String fileName, ResultSet results, ResultSet returnResults );
+
+    public void writeAppropriateFormat(String fileName, ResultSet results, ResultSet returnResults );     //jb
 
 }

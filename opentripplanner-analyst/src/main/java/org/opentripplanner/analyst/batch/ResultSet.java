@@ -26,7 +26,6 @@ public class ResultSet {
     public Population population;
     public double[] results;
     
-    //jb modified for calculating toResults and fromResults
     public static ResultSet forTravelTimes(Population population, ShortestPathTree spt) {
         double[] results = new double[population.size()];
         int i = 0;
@@ -39,31 +38,14 @@ public class ResultSet {
                 t = s.eval(spt);
             if (t == Long.MAX_VALUE)
                 t = -1;
-            results[i] = t; //jb comment out
-            //indiv.output = t;
+            results[i] = t;
+          
             i++;
         }
         return new ResultSet(population, results);
     }
     
-    /*public static ResultSet forTravelTimes(Population population, ShortestPathTree spt) {
-        double[] results = new double[population.size()];
-        int i = 0;
-        for (Individual indiv : population) {
-            Sample s = indiv.sample;
-            long t = Long.MAX_VALUE;
-            if (s == null)
-                t = -2;
-            else
-                t = s.eval(spt);
-            if (t == Long.MAX_VALUE)
-                t = -1;
-            //results[i] = t; //jb comment out
-            indiv.output = t;
-            i++;
-        }
-        return new ResultSet(population, results);
-    }*/
+   
     
     public ResultSet(Population population, double[] results) {
         this.population = population;
@@ -79,8 +61,8 @@ public class ResultSet {
         population.writeAppropriateFormat(outFileName, this);
     }
     
-    public void writeAppropriateFormat(String outFileName,ResultSet fromResults) {
-        population.writeAppropriateFormat(outFileName, this, fromResults);
-    }
+    public void writeAppropriateFormat(String outFileName,ResultSet fromResults) {  //jb altered to include return results too.
+        population.writeAppropriateFormat(outFileName, this, fromResults); //jb
+    } //jb
     
 }

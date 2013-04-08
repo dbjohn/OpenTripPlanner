@@ -92,11 +92,7 @@ public class BasicPopulation implements Population {
                   
                 	  String[] entries = new String[] { 
                             indiv.label, Double.toString(indiv.lat), Double.toString(indiv.lon), 
-                            Double.toString(indiv.input), Double.toString(results.results[j]) }; 
-                	/*  String[] entries = new String[] { 
-                              indiv.label, Double.toString(indiv.lat), Double.toString(indiv.lon), 
-                              Double.toString(indiv.input), Double.toString(indiv.output)
-                      }; //JB added indiv.output*/
+                            Double.toString(indiv.input), Double.toString(results.results[j]) };                 	
                 	  writer.writeRecord(entries);
                     j++;
                   	}              	                  
@@ -110,9 +106,10 @@ public class BasicPopulation implements Population {
         LOG.debug("Done writing population to CSV at {}.", outFileName);
     }
 
-    //jb modified to write return results
-    protected void writeCsv(String outFileName, ResultSet results, ResultSet returnResults) {
-        LOG.debug("Writing population to CSV: {}", outFileName);
+    //jb this method is basically a copy of the writeCsv method which takes 2 arguments 
+    //jb it was simply modified to write return results as well as to results.
+    protected void writeCsv(String outFileName, ResultSet results, ResultSet returnResults) {   //jb - added extra results argument
+        LOG.debug("Writing population to CSV: {}", outFileName); 
         try {
             CsvWriter writer = new CsvWriter(outFileName, ',', Charset.forName("UTF8"));
             writer.writeRecord( new String[] {"label", "lat", "lon", "input", "to","from"} );
@@ -124,7 +121,7 @@ public class BasicPopulation implements Population {
                         
                                   String[] entries = new String[] { 
                                     indiv.label, Double.toString(indiv.lat), Double.toString(indiv.lon), 
-                                    Double.toString(indiv.input), Double.toString(results.results[j]), Double.toString(returnResults.results[j])}; //JB added return results
+                                    Double.toString(indiv.input), Double.toString(results.results[j]), Double.toString(returnResults.results[j])}; //jb added return results
                               writer.writeRecord(entries);
                               j++;
                         }
@@ -145,11 +142,11 @@ public class BasicPopulation implements Population {
         this.writeCsv(outFileName, results);
     }
     
-    //jb
+    //jb this method is again basically a copy of the same method with two argument. Added the extra argument to enable writing the return results to file.
     @Override
-    public void writeAppropriateFormat(String outFileName, ResultSet results, ResultSet fromResults) {
+    public void writeAppropriateFormat(String outFileName, ResultSet results, ResultSet fromResults) {  //jb
         // as a default, save to CSV. override this method in subclasses when more is known about data structure.
-        this.writeCsv(outFileName, results,fromResults);
+        this.writeCsv(outFileName, results,fromResults);  //jb
     }
 
     // TODO maybe store skip values in the samples themselves?

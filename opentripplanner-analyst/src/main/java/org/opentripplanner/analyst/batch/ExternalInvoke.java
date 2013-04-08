@@ -8,6 +8,7 @@ import java.net.SocketException;
 	/*
 	 * JB 
 	 * class to invoke batch processor when needed from external program
+	 * This whole class was written by author (John Brennan)
 	 * 
 	 */
 public class ExternalInvoke {
@@ -21,7 +22,6 @@ public class ExternalInvoke {
 	private static	Socket client;
 	private static	int temp = 5; 
 	private static	int count = 0;
-	/*private static	String clientMessage; */
 	private static PrintWriter out; 
 	private static BufferedReader in; 
 
@@ -46,27 +46,19 @@ public class ExternalInvoke {
 		 
 	}
 	
+	//awaitRequest from Rail application and return transport modes.
 	public static String awaitRequest(){
-		 //while (count < temp) { 
-			 String transportModes = "";
+	       String transportModes = "";
 	       try{
 	    	   System.out.println("going to wait on accept");
 	    	   client = server.accept(); 
-	    	   /*DataInputStream in = new DataInputStream(client.getInputStream());
-	    	   */
+	    	  
 	    	   System.out.println("socket setup");
 
-	    	    in = new BufferedReader(new InputStreamReader(client.getInputStream())); //blocks on waiting for input
-	    	   //while ((input = in.readLine()) != null) ;
-	    	    transportModes = in.readLine();
-	    	
-	    	   /*System.out.println("Sent modes----------S"); 
-	    	   System.out.println(transportModes); */
-	    	   		
+	    	    in = new BufferedReader(new InputStreamReader(client.getInputStream())); //blocks on waiting for input	    	  
+	    	    transportModes = in.readLine();	    		    	   	    	   		
 	       }
-	      /* catch(InterruptedException e){
-	    	   e.printStackTrace();
-	       }*/
+	      
 	       catch(IOException e){
 	    	   System.out.println("Problem occurred when reading from socket");
 		       e.printStackTrace();	    	   
@@ -76,7 +68,7 @@ public class ExternalInvoke {
 	       
 	}
 
-	
+	//notify rails application to continue.
 	public static void finishNotify()        
         {	        
     	    try {
@@ -87,10 +79,5 @@ public class ExternalInvoke {
 	    out.println("Continue");	    
         }
 	
-	public static void test(String arg)
 	
-	{
-		System.out.println("From external invoke: " + arg);
-		
-	}
 }

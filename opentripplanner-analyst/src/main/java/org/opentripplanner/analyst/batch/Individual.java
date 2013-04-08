@@ -39,7 +39,6 @@ public class Individual {
 
     public Individual() { }
  
-    // public boolean rejected;
 
     
 }
