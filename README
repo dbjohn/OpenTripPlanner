@@ -1,4 +1,9 @@
-This is my fork of the OpenTripPlanner project at https://github.com/openplans/OpenTripPlanner. This has been modified to fulfil the role of calculating travel times in a project for my course work. The main modificatios are found in the opentripplanner-analyst sub-project. The other main part of this project is the Ruby on Rails project at https://github.com/dbjohn/Property-Recommender-Website, which also contains an instructions.txt with more details on the project.
+This is my fork of the OpenTripPlanner project at https://github.com/openplans/OpenTripPlanner.  
+This has been modified to fulfil the role of calculating travel times in a project for my course work.  
+The main modifications are found in the opentripplanner-analyst sub-project.  
+The other main part of this project is the Ruby on Rails project at 
+https://github.com/dbjohn/Property-Recommender-Website, which also contains 
+an instructions.txt with more details on the project.
 ---------------------------------------------------------------------------------------------------------
 
 --== OVERVIEW ==--
